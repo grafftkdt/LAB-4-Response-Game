@@ -46,7 +46,12 @@ DMA_HandleTypeDef hdma_adc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+uint32_t ADCData[2] = {0};
+uint16_t SwitchState = 0;		//mode 0 >> press  mode 1 >> unpress
 
+uint32_t Time = 0;
+uint32_t RandomTime = 0;
+uint32_t ResponseTime = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,6 +102,8 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   HAL_ADC_Start_DMA(&hadc1, ADCData, 2);
+
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);	// LD2 turn ON at the beginning
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -106,6 +113,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  if (SwitchState) 			//pressing
+	  {
+		  if (HAL_GetTick() - Time > RandomTime)			//turn ON LD2 when RandomTime run out
+		  {
+			  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+		  }
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -299,6 +313,34 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == GPIO_PIN_13)			// blue botton
+	{
+		switch (SwitchState)
+		{
+		case 0 :	// press >> LD2 OFF for Randomtime
+			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);	// turn OFF LD2
+
+			RandomTime = 1000 + ((22695477 * ADCData[0]) + ADCData[1])% 10000;
+			Time = HAL_GetTick();
+
+			SwitchState = 1;
+
+		case 1 :	// unpress
+			if (HAL_GetTick() - Time > RandomTime)		//recheck เวลาตอนนี้มากกว่าเวลาตอนเริ่มดับ
+			{
+				ResponseTime = (HAL_GetTick() - Time) - RandomTime;
+			}
+			else 										// error
+			{
+				ResponseTime = 0;
+			}
+			SwitchState = 0;
+		}
+	}
+}
 
 /* USER CODE END 4 */
 
