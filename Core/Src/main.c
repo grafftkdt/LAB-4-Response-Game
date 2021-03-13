@@ -46,12 +46,7 @@ DMA_HandleTypeDef hdma_adc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint32_t ADCData[2] = {0};
-uint32_t counttime = 0;
-uint32_t presstime = 0;
-uint32_t howfast = 0;
-uint32_t time = 0;
-GPIO_PinState SwitchState[2];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -304,48 +299,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	uint32_t mode = 2; 			// mode 1 >> unpressed botton(rising edge)    mode 0 >> pressed button(falling edge)    mode 2 >> start
-	uint32_t randomtime = 1000 + ((( 22695477 * ADCData[0] )+ADCData[1]) % 10000 );
-	SwitchState[0] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
 
-	if (mode == 2)
-	{
-		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, SET);
-		if(SwitchState[1] == GPIO_PIN_SET && SwitchState[0] == GPIO_PIN_RESET)
-		{
-			mode = 0;
-		}
-	}
-	else if (SwitchState[1] == GPIO_PIN_RESET && SwitchState[0] == GPIO_PIN_SET)			// unpressed button >> mode 1
-	{
-		presstime = HAL_GetTick();							// start time counting
-		howfast = presstime - counttime;
-		if(SwitchState[1] == GPIO_PIN_SET && SwitchState[0] == GPIO_PIN_RESET)
-		{
-			mode = 0;
-		}
-	}
-	else if (SwitchState[1] == GPIO_PIN_SET && SwitchState[0] == GPIO_PIN_RESET)		// pressed button >> mode 0
-	{
-
-		if(SwitchState[1] == GPIO_PIN_RESET && SwitchState[0] == GPIO_PIN_SET)
-			{
-				if(HAL_GetTick() - time <= randomtime)					//LD2 OFF for randomtime millisecond
-				{
-					HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, SET);
-					time = HAL_GetTick();
-				}
-				else
-				{
-					HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, RESET);		//LD2 ON
-					counttime = HAL_GetTick();							// start time counting
-					mode = 1;
-				}
-			}
-	}
-}
 /* USER CODE END 4 */
 
 /**
