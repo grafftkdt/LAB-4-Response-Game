@@ -327,6 +327,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			Time = HAL_GetTick();
 
 			SwitchState = 1;
+			break;
 
 		case 1 :	// unpress
 			if (HAL_GetTick() - Time > RandomTime)		//recheck เวลาตอนนี้มากกว่าเวลาตอนเริ่มดับ
@@ -338,6 +339,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				ResponseTime = 0;
 			}
 			SwitchState = 0;
+			break;
 		}
 	}
 }
